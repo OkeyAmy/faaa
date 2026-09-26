@@ -18,14 +18,16 @@ type Config struct {
 	CatalogURL string   `json:"catalog_url"`           // index.json source
 	Theme      string   `json:"theme"`                 // tui palette name
 	NoAutoArm  bool     `json:"no_auto_arm,omitempty"` // set by `faaa uninstall`
+	FailSound  string   `json:"fail_sound,omitempty"`  // plays on rejected pushes ("" = silent)
+	Volume     float64  `json:"volume,omitempty"`      // 0..1, 0 = full
 	// Colors overrides palette slots (fg, dim, accent, accent2, hot, ok, border) with hex.
 	Colors map[string]string `json:"colors,omitempty"`
 }
 
-const DefaultCatalog = "https://raw.githubusercontent.com/okeyamy/faaa/main/internal/catalog/index.json"
+const DefaultCatalog = "https://raw.githubusercontent.com/OkeyAmy/faaa/main/internal/catalog/index.json"
 
 func Default() Config {
-	return Config{Sound: "faaah", MaxSeconds: 15, Enabled: true, CatalogURL: DefaultCatalog, Theme: "neon"}
+	return Config{Sound: "faaah", MaxSeconds: 15, Enabled: true, CatalogURL: DefaultCatalog, Theme: "terminal"}
 }
 
 func file() string { return filepath.Join(paths.Config(), "config.json") }

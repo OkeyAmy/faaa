@@ -6,7 +6,7 @@ BIN=$(cd "$(dirname "${1:-./faaa}")" && pwd)/$(basename "${1:-./faaa}")
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 export HOME="$T" XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_CACHE_HOME= GIT_CONFIG_NOSYSTEM=1
-printf '#!/bin/sh\necho PLAYED >> %s/log\n' "$T" > "$T/stub"
+printf '#!/bin/sh\nfor a; do f=$a; done\necho "PLAYED $(basename "$f" .wav)" >> %s/log\n' "$T" > "$T/stub"
 chmod +x "$T/stub"
 export FAAA_PLAYER="$T/stub"
 git config --global user.email t@t
@@ -14,10 +14,14 @@ git config --global user.name t
 git config --global init.defaultBranch main
 
 fail=0
-check() { # name expected-plays
-	sleep 0.4
+check() { # name expected-plays [expected-sound]
+	sleep 0.5
 	n=$(grep -c PLAYED "$T/log" 2>/dev/null)
-	if [ "${n:-0}" -eq "$2" ]; then echo "ok   $1"; else echo "FAIL $1 (plays=$n want $2)"; fail=1; fi
+	if [ "${n:-0}" -eq "$2" ] && { [ -z "${3:-}" ] || grep -q "PLAYED $3\$" "$T/log"; }; then
+		echo "ok   $1"
+	else
+		echo "FAIL $1 (plays=$n want $2 ${3:-}; log: $(tr '\n' ' ' < "$T/log" 2>/dev/null))"; fail=1
+	fi
 	: > "$T/log"
 }
 
@@ -54,11 +58,24 @@ check "other clone push plays" 1
 echo 3 > h && git add h && git commit -qm 3 && git push -q origin main 2>/dev/null
 check "rejected push silent" 0
 
+"$BIN" fail bruh >/dev/null
+git push -q origin main 2>/dev/null
+check "rejected push plays fail sound" 1 bruh
+"$BIN" fail off
+
 git fetch -q
 check "fetch after rejected push silent" 0
 
 git pull -q --rebase origin main && git push -q origin main
 check "push after rebase plays" 1
+
+printf 'vine-boom\n' > .faaa
+echo 5 > j && git add j && git commit -qm 5 && git push -q origin main
+check "repo .faaa anthem plays" 1 vine-boom
+rm .faaa
+
+echo 6 > k && git add k && git commit -qm 6 && FAAA_MUTE=1 git push -q origin main
+check "FAAA_MUTE=1 silences one push" 0
 
 "$BIN" off && echo 4 > i && git add i && git commit -qm 4 && git push -q origin main
 check "muted push silent" 0

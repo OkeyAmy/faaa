@@ -11,17 +11,21 @@ type Palette struct {
 	Fg, Dim, Accent, Accent2, Hot, Ok, Border string
 }
 
+// "terminal" uses the 16 ANSI colors, so faaa inherits whatever theme the
+// terminal already runs (Omarchy, rose-pine, your own). Everything else is
+// a fixed palette for people who want faaa to look the same everywhere.
 var Themes = map[string]Palette{
-	"neon":       {"#E6E6F0", "#5A5A7A", "#00F0FF", "#FF2BD6", "#FFB000", "#39FF88", "#2A2A48"},
-	"tokyonight": {"#C0CAF5", "#565F89", "#7AA2F7", "#BB9AF7", "#FF9E64", "#9ECE6A", "#292E42"},
-	"catppuccin": {"#CDD6F4", "#6C7086", "#89B4FA", "#F5C2E7", "#FAB387", "#A6E3A1", "#313244"},
-	"rosepine":   {"#E0DEF4", "#6E6A86", "#9CCFD8", "#EBBCBA", "#F6C177", "#31748F", "#26233A"},
-	"gruvbox":    {"#EBDBB2", "#7C6F64", "#83A598", "#D3869B", "#FE8019", "#B8BB26", "#3C3836"},
-	"dracula":    {"#F8F8F2", "#6272A4", "#8BE9FD", "#FF79C6", "#FFB86C", "#50FA7B", "#343746"},
-	"nord":       {"#ECEFF4", "#4C566A", "#88C0D0", "#B48EAD", "#EBCB8B", "#A3BE8C", "#3B4252"},
-	"matrix":     {"#B8FFB8", "#2F6F2F", "#00FF41", "#7DFF9E", "#E0FF4F", "#00FF41", "#123312"},
-	"sunset":     {"#FFE8D6", "#7A5C61", "#FF6B6B", "#FFD93D", "#FF9F1C", "#6BCB77", "#3A2A33"},
+	"terminal":   {"", "8", "3", "3", "1", "2", "8"},
+	"ink":        {"#E8E8E8", "#6B6B6B", "#F05033", "#F05033", "#F05033", "#E8E8E8", "#2A2A2A"}, // mono + git orange
+	"tokyonight": {"#C0CAF5", "#565F89", "#7AA2F7", "#7AA2F7", "#FF9E64", "#9ECE6A", "#292E42"},
+	"catppuccin": {"#CDD6F4", "#6C7086", "#89B4FA", "#89B4FA", "#FAB387", "#A6E3A1", "#313244"},
+	"rosepine":   {"#E0DEF4", "#6E6A86", "#EBBCBA", "#EBBCBA", "#F6C177", "#9CCFD8", "#26233A"},
+	"gruvbox":    {"#EBDBB2", "#7C6F64", "#FE8019", "#FE8019", "#FB4934", "#B8BB26", "#3C3836"},
+	"nord":       {"#ECEFF4", "#4C566A", "#88C0D0", "#88C0D0", "#EBCB8B", "#A3BE8C", "#3B4252"},
 }
+
+// DefaultTheme follows the terminal.
+const DefaultTheme = "terminal"
 
 func ThemeNames() []string {
 	var n []string
@@ -35,7 +39,7 @@ func ThemeNames() []string {
 func resolve(name string, over map[string]string) Palette {
 	p, ok := Themes[name]
 	if !ok {
-		p = Themes["neon"]
+		p = Themes[DefaultTheme]
 	}
 	for k, v := range over {
 		switch k {
@@ -71,7 +75,10 @@ const gradSteps = 24
 func newStyles(p Palette) styles {
 	c := func(h string) lipgloss.Color { return lipgloss.Color(h) }
 	s := styles{p: p}
-	s.fg = lipgloss.NewStyle().Foreground(c(p.Fg))
+	s.fg = lipgloss.NewStyle()
+	if p.Fg != "" {
+		s.fg = s.fg.Foreground(c(p.Fg)) // "" = terminal's own foreground
+	}
 	s.dim = lipgloss.NewStyle().Foreground(c(p.Dim))
 	s.accent = lipgloss.NewStyle().Foreground(c(p.Accent)).Bold(true)
 	s.accent2 = lipgloss.NewStyle().Foreground(c(p.Accent2)).Bold(true)
@@ -80,7 +87,13 @@ func newStyles(p Palette) styles {
 	s.sel = lipgloss.NewStyle().Foreground(c(p.Accent)).Bold(true)
 	s.box = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(c(p.Border)).Padding(0, 1)
 	s.boxFocus = s.box.BorderForeground(c(p.Accent))
+	ansi := len(p.Accent) == 0 || p.Accent[0] != '#'
 	for i := range gradSteps {
+		if ansi { // no blending in ANSI space: played = accent, rest = dim
+			s.grad = append(s.grad, lipgloss.NewStyle().Foreground(c(p.Accent)))
+			s.gradDim = append(s.gradDim, lipgloss.NewStyle().Foreground(c(p.Dim)))
+			continue
+		}
 		t := float64(i) / (gradSteps - 1)
 		col := mix(p.Accent, p.Accent2, t)
 		s.grad = append(s.grad, lipgloss.NewStyle().Foreground(c(col)))

@@ -40,7 +40,10 @@ usage:
   faaa list               list sounds
   faaa share <id>         submit one of your sounds to the community catalog
   faaa theme [name]       list or set TUI theme
-  faaa on | off           unmute / mute push sounds
+  faaa fail <id|off>      sound for rejected pushes
+  faaa volume [0-100]     playback volume
+  faaa on | off           unmute / mute (one push: FAAA_MUTE=1 git push)
+  .faaa in a repo         line 1: repo's push sound, line 2: its fail sound
   faaa doctor             check setup
   faaa version
 `
@@ -63,11 +66,19 @@ func run(args []string) error {
 		return play(cfg, rest)
 	case "_pushed": // from pre-push hook: <git pid> <remote> <url>, refs on stdin
 		return pushed(rest)
-	case "_await": // detached: <git pid> <checks...>
-		if len(rest) > 0 && hook.Await(rest[0], hook.Decode(rest[1:])) {
-			return play(cfg, nil)
+	case "_await": // detached, in the repo root: <git pid> <checks...>
+		if len(rest) == 0 {
+			return nil
 		}
-		return nil
+		ok := hook.Await(rest[0], hook.Decode(rest[1:]))
+		win, fail := repoSounds(cfg)
+		if !ok {
+			win = fail
+		}
+		if win == "" || !cfg.Enabled {
+			return nil
+		}
+		return playSound(cfg, win, true)
 	case "install":
 		cfg.NoAutoArm = false
 		return install(cfg, false)
@@ -169,6 +180,43 @@ func run(args []string) error {
 		}
 		cfg.Theme = rest[0]
 		return config.Save(cfg)
+	case "fail":
+		if len(rest) == 0 {
+			fmt.Println(map[bool]string{true: "off", false: cfg.FailSound}[cfg.FailSound == ""])
+			return nil
+		}
+		if rest[0] == "off" {
+			cfg.FailSound = ""
+			return config.Save(cfg)
+		}
+		s, ok := catalog.Find(rest[0])
+		if !ok {
+			return fmt.Errorf("no sound %q (see `faaa list`)", rest[0])
+		}
+		if err := fetch.Ensure(s, cfg.MaxSeconds); err != nil {
+			return err
+		}
+		cfg.FailSound = s.ID
+		fmt.Println("✓ rejected pushes now play", s.Title)
+		return config.Save(cfg)
+	case "volume", "vol":
+		if len(rest) == 0 {
+			v := cfg.Volume
+			if v == 0 {
+				v = 1
+			}
+			fmt.Printf("%.0f%%\n", v*100)
+			return nil
+		}
+		v, err := strconv.ParseFloat(strings.TrimSuffix(rest[0], "%"), 64)
+		if err != nil || v < 0 {
+			return fmt.Errorf("usage: faaa volume 40   (percent)")
+		}
+		if v > 1 {
+			v /= 100
+		}
+		cfg.Volume = min(v, 1)
+		return config.Save(cfg)
 	case "on", "off":
 		cfg.Enabled = cmd == "on"
 		return config.Save(cfg)
@@ -193,6 +241,35 @@ func play(cfg config.Config, rest []string) error {
 	} else if !cfg.Enabled {
 		return nil
 	}
+	return playSound(cfg, id, false)
+}
+
+// repoSounds: a `.faaa` file in the repo root overrides the push sound for
+// everyone on the team (line 1), and optionally the fail sound (line 2).
+func repoSounds(cfg config.Config) (win, fail string) {
+	win, fail = cfg.Sound, cfg.FailSound
+	b, err := os.ReadFile(".faaa")
+	if err != nil {
+		return
+	}
+	lines := strings.Split(strings.TrimSpace(string(b)), "\n")
+	if v := strings.TrimSpace(lines[0]); v != "" {
+		win = v
+	}
+	if len(lines) > 1 {
+		fail = strings.TrimSpace(lines[1])
+	}
+	return
+}
+
+// playSound plays id; fetch=true may download it first (only from the
+// detached hook process, never on anything the user waits for).
+func playSound(cfg config.Config, id string, fetchOK bool) error {
+	if fetchOK && !catalog.Ready(id) {
+		if s, ok := catalog.Find(id); ok {
+			_ = fetch.Ensure(s, cfg.MaxSeconds)
+		}
+	}
 	f := paths.Sound(id)
 	if _, err := os.Stat(f); err != nil {
 		if !audio.IsBuiltin(id) { // sound was deleted: fall back to default
@@ -205,12 +282,15 @@ func play(cfg config.Config, rest []string) error {
 			}
 		}
 	}
-	return audio.PlayDetached(cfg.Player, f)
+	return audio.PlayDetached(cfg.Player, f, cfg.Volume)
 }
 
 // pushed runs inside pre-push: must be fast and never fail the push.
 func pushed(args []string) error {
 	if len(args) < 3 {
+		return nil
+	}
+	if os.Getenv("FAAA_MUTE") != "" { // FAAA_MUTE=1 git push: silent this once
 		return nil
 	}
 	checks, any := hook.ParsePrePush(os.Stdin, args[1], args[2])
@@ -222,10 +302,7 @@ func pushed(args []string) error {
 	if err != nil {
 		return nil
 	}
-	if len(checks) == 0 { // unverifiable (tag, refs/for/*, raw URL): play optimistically
-		_ = hook.Background(self, "play")
-		return nil
-	}
+	// no checks = unverifiable (tag, refs/for/*, raw URL): plays optimistically
 	_ = hook.Background(self, append([]string{"_await", args[0]}, hook.Encode(checks)...)...)
 	return nil
 }
@@ -311,7 +388,7 @@ func clock(sec float64) string {
 	return fmt.Sprintf("%d:%02d", s/60, s%60)
 }
 
-const repo = "https://github.com/okeyamy/faaa"
+const repo = "https://github.com/OkeyAmy/faaa"
 
 func share(rest []string) error {
 	if len(rest) != 1 {

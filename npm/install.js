@@ -13,7 +13,7 @@ if (!plat || !arch) {
   process.exit(1);
 }
 const ext = plat === "windows" ? "zip" : "tar.gz";
-const url = `https://github.com/okeyamy/faaa/releases/download/v${version}/faaa_${plat}_${arch}.${ext}`;
+const url = `https://github.com/OkeyAmy/faaa/releases/download/v${version}/faaa_${plat}_${arch}.${ext}`;
 const bin = path.join(__dirname, "bin");
 const archive = path.join(os.tmpdir(), `faaa-${process.pid}.${ext}`);
 

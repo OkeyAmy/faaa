@@ -91,6 +91,7 @@ func Decode(args []string) []Check {
 }
 
 // Await blocks until the git push process exits, then reports success.
+// With no checks (nothing verifiable) it reports success after the wait.
 // Unix: wait on the pid. Elsewhere (no reliable pid through git-bash):
 // poll the refs for up to 90s.
 func Await(pid string, cs []Check) bool {
@@ -100,8 +101,11 @@ func Await(pid string, cs []Check) bool {
 			for alive(p) && time.Now().Before(deadline) {
 				time.Sleep(20 * time.Millisecond)
 			}
-			return Succeeded(cs)
+			return len(cs) == 0 || Succeeded(cs)
 		}
+	}
+	if len(cs) == 0 {
+		return true
 	}
 	for end := time.Now().Add(90 * time.Second); time.Now().Before(end); time.Sleep(300 * time.Millisecond) {
 		if Succeeded(cs) {

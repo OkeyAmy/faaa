@@ -36,7 +36,7 @@ type (
 		pre  bool // background prefetch: don't arm or play
 	}
 	hoverMsg   struct{ id string }
-	playEndMsg struct{ id string }
+	playEndMsg struct{ gen int }
 	warmMsg    struct{}
 	addedMsg   struct {
 		s   catalog.Sound
@@ -77,6 +77,7 @@ type Model struct {
 	webQ     string
 	webBusy  bool
 	pre      map[string]bool // prefetches in flight
+	gen      int             // playback generation: stale end events are ignored
 }
 
 func prefetch(s catalog.Sound, maxSec float64) tea.Cmd {
@@ -286,7 +287,7 @@ func ensure(s catalog.Sound, maxSec float64, play bool) tea.Cmd {
 
 func (m *Model) startPlay(id string) tea.Cmd {
 	m.stop()
-	c, err := audio.Command(m.cfg.Player, paths.Sound(id))
+	c, err := audio.Command(m.cfg.Player, paths.Sound(id), m.cfg.Volume)
 	if err != nil {
 		m.flash("✗ " + err.Error())
 		return nil
@@ -296,12 +297,14 @@ func (m *Model) startPlay(id string) tea.Cmd {
 		return nil
 	}
 	m.loadPeaks(id)
+	m.gen++
+	gen := m.gen
 	m.player, m.playing, m.started = c, id, time.Now()
 	m.dur = 1
 	if d, ok := m.peaks[id+"#dur"]; ok {
 		m.dur = d[0]
 	}
-	return tea.Batch(m.startTick(), func() tea.Msg { _ = c.Wait(); return playEndMsg{id} })
+	return tea.Batch(m.startTick(), func() tea.Msg { _ = c.Wait(); return playEndMsg{gen} })
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -363,7 +366,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.animAt = time.Now() // re-grow hero with real peaks
 		return m, m.startTick()
 	case playEndMsg:
-		if m.playing == msg.id {
+		if msg.gen == m.gen { // only the current playback can clear state
 			m.player, m.playing = nil, ""
 		}
 	case hoverMsg:
@@ -523,6 +526,9 @@ func (m Model) handle(k tea.KeyMsg, s catalog.Sound, ok bool) (tea.Model, tea.Cm
 		}
 		if catalog.Ready(s.ID) {
 			return m, m.startPlay(s.ID)
+		}
+		if m.loading[s.ID] {
+			return m, nil // already fetching; it plays when ready
 		}
 		m.loading[s.ID] = true
 		return m, tea.Batch(ensure(s, m.cfg.MaxSeconds, true), m.startTick())

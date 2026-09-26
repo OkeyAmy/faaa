@@ -178,9 +178,15 @@ func tiktokSound(link, dst string) (title, path string, err error) {
 // yt-dlp + ffmpeg once if missing; note reports that.
 func FromLink(link, dst string, note func(string)) (title, path string, err error) {
 	if tiktokRe.MatchString(link) {
-		if t, p, err := tiktokSound(link, dst); err == nil {
+		if strings.Contains(link, "/music/") {
+			// sound pages sit behind TikTok's signed API; videos don't
+			return "", "", errors.New("that's a TikTok sound page — open any video that uses the sound, tap Share → Copy link, and paste that")
+		}
+		t, p, err := tiktokSound(link, dst)
+		if err == nil {
 			return t, p, nil
 		}
+		return "", "", err
 	}
 	y, err := tools.Ensure("yt-dlp", note)
 	if err != nil {

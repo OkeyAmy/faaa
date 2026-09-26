@@ -1,26 +1,71 @@
 name: release
+# Every code change on main ships: test -> tag (patch bump) -> build all
+# platforms -> verify the one-line installers actually work.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: ["cmd/**", "internal/**", "!internal/catalog/index.json", "go.mod", "go.sum", ".goreleaser.yaml"]
+  workflow_dispatch:
 permissions:
   contents: write
+  id-token: write # npm trusted publishing (no token)
+concurrency: release
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: actions/setup-go@v5
         with: { go-version-file: go.mod }
-      - run: go test ./... && sh scripts/e2e.sh "$(go build -o /tmp/faaa ./cmd/faaa && echo /tmp/faaa)"
+      - run: go test ./...
+      - run: go build -o /tmp/faaa ./cmd/faaa && sh scripts/e2e.sh /tmp/faaa
+      - id: tag
+        run: |
+          last=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo v0.0.0)
+          IFS=. read -r maj min pat <<EOF2
+          ${last#v}
+          EOF2
+          next="v$maj.$min.$((pat+1))"
+          git tag "$next" && git push origin "$next"
+          echo "tag=$next" >> "$GITHUB_OUTPUT"
       - uses: goreleaser/goreleaser-action@v6
         with: { args: release --clean }
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+
+  npm:
+    needs: release
+    runs-on: ubuntu-latest
+    continue-on-error: true # needs the package linked once as a trusted publisher on npmjs.com
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, registry-url: "https://registry.npmjs.org" }
-      - name: publish npm wrapper
-        working-directory: npm
+        with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
+      - working-directory: npm
         run: |
-          npm version --no-git-tag-version "${GITHUB_REF_NAME#v}"
-          npm publish --access public
-        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
+          npm version --no-git-tag-version "${{ needs.release.outputs.tag }}"
+          npm publish --provenance --access public
+
+  verify-install:
+    needs: release
+    strategy:
+      matrix: { os: [ubuntu-latest, macos-latest] }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: curl -fsSL https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.sh | FAAA_DIR="$HOME/bin" sh
+      - run: |
+          "$HOME/bin/faaa" version
+          "$HOME/bin/faaa" doctor || true
+          "$HOME/bin/faaa" list | head -3
+
+  verify-install-windows:
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - shell: pwsh
+        run: |
+          irm https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.ps1 | iex
+          & "$env:LOCALAPPDATA\faaa\faaa.exe" version
+          & "$env:LOCALAPPDATA\faaa\faaa.exe" list | Select-Object -First 3

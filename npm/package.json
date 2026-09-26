@@ -5,7 +5,7 @@
   "bin": { "faaa": "run.js" },
   "scripts": { "postinstall": "node install.js" },
   "files": ["run.js", "install.js"],
-  "repository": "github:okeyamy/faaa",
+  "repository": "github:OkeyAmy/faaa",
   "license": "MIT",
   "keywords": ["git", "push", "sound", "hook", "tui", "fun", "meme"]
 }

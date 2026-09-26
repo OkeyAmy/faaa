@@ -2,8 +2,10 @@ package audio
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -30,8 +32,9 @@ func DetectPlayer() ([]string, error) {
 	return nil, errors.New("no audio player found (need pw-play, paplay, aplay, afplay or ffplay)")
 }
 
-// Command builds the player command for file. FAAA_PLAYER overrides (tests).
-func Command(player []string, file string) (*exec.Cmd, error) {
+// Command builds the player command for file at volume vol (0..1; players
+// without a volume flag play at full level).
+func Command(player []string, file string, vol float64) (*exec.Cmd, error) {
 	if o := os.Getenv("FAAA_PLAYER"); o != "" {
 		player = []string{o}
 	}
@@ -47,14 +50,29 @@ func Command(player []string, file string) (*exec.Cmd, error) {
 		// doesn't work: embed the path as a quoted literal instead.
 		arg = "(New-Object Media.SoundPlayer '" + strings.ReplaceAll(file, "'", "''") + "').PlaySync()"
 	}
-	args := append(append([]string{}, player[1:]...), arg)
+	args := append([]string{}, player[1:]...)
+	if vol > 0 && vol < 1 {
+		switch strings.TrimSuffix(filepath.Base(player[0]), ".exe") {
+		case "pw-play", "pw-cat":
+			args = append(args, fmt.Sprintf("--volume=%.2f", vol))
+		case "paplay":
+			args = append(args, fmt.Sprintf("--volume=%d", int(vol*65536)))
+		case "afplay":
+			args = append(args, "-v", fmt.Sprintf("%.2f", vol))
+		case "ffplay":
+			args = append(args, "-volume", fmt.Sprint(int(vol*100)))
+		case "mpv":
+			args = append(args, fmt.Sprintf("--volume=%d", int(vol*100)))
+		}
+	}
+	args = append(args, arg)
 	return exec.Command(player[0], args...), nil
 }
 
 // PlayDetached starts playback in its own session and returns immediately,
 // so git push is never delayed.
-func PlayDetached(player []string, file string) error {
-	c, err := Command(player, file)
+func PlayDetached(player []string, file string, vol float64) error {
+	c, err := Command(player, file, vol)
 	if err != nil {
 		return err
 	}

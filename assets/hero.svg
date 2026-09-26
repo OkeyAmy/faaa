@@ -1,24 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" role="img" aria-label="faaa — git push, but louder">
   <defs>
-    <linearGradient id="g" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#00F0FF"/>
-      <stop offset="0.5" stop-color="#8B5CFF"/>
-      <stop offset="1" stop-color="#FF2BD6"/>
-    </linearGradient>
-    <linearGradient id="gw" gradientUnits="userSpaceOnUse" x1="-300" x2="300" y1="0" y2="0">
-      <stop offset="0" stop-color="#00F0FF"/>
-      <stop offset="0.5" stop-color="#8B5CFF"/>
-      <stop offset="1" stop-color="#FF2BD6"/>
-    </linearGradient>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0B0B16"/>
-      <stop offset="1" stop-color="#15102A"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.55" r="0.6">
-      <stop offset="0" stop-color="#8B5CFF" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="#8B5CFF" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="blur"><feGaussianBlur stdDeviation="6"/></filter>
     <style>
       .mono { font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; }
       .bar  { transform-box: fill-box; transform-origin: 50% 50%; animation: beat 1.6s cubic-bezier(.2,.8,.2,1) infinite; }
@@ -38,21 +19,19 @@
     <clipPath id="typeclip"><rect class="type" x="118" y="266" width="104" height="30"/></clipPath>
   </defs>
 
-  <rect width="880" height="360" rx="22" fill="url(#bg)"/>
-  <rect width="880" height="360" rx="22" fill="url(#glow)"/>
-  <rect x="0.5" y="0.5" width="879" height="359" rx="22" fill="none" stroke="#2A2A48"/>
+  <rect width="880" height="360" rx="14" fill="#0A0A0A"/>
+  <rect x="0.5" y="0.5" width="879" height="359" rx="14" fill="none" stroke="#222"/>
 
   <!-- window dots -->
-  <circle cx="30" cy="28" r="6" fill="#FF5F57"/><circle cx="50" cy="28" r="6" fill="#FEBC2E"/><circle cx="70" cy="28" r="6" fill="#28C840"/>
+  <circle cx="30" cy="28" r="5" fill="#333"/><circle cx="48" cy="28" r="5" fill="#333"/><circle cx="66" cy="28" r="5" fill="#333"/>
 
   <!-- wordmark -->
-  <text x="440" y="118" text-anchor="middle" class="mono" font-size="84" font-weight="800" letter-spacing="18" fill="url(#g)">faaa</text>
-  <text x="440" y="118" text-anchor="middle" class="mono" font-size="84" font-weight="800" letter-spacing="18" fill="url(#g)" opacity=".45" filter="url(#blur)">faaa</text>
-  <text x="440" y="152" text-anchor="middle" class="mono" font-size="17" fill="#8A8AB0" letter-spacing="4">GIT PUSH, BUT LOUDER</text>
+  <text x="440" y="118" text-anchor="middle" class="mono" font-size="84" font-weight="800" letter-spacing="18" fill="#EDEDED">faaa</text>
+  <text x="440" y="152" text-anchor="middle" class="mono" font-size="17" fill="#6B6B6B" letter-spacing="4">GIT PUSH, BUT LOUDER</text>
 
   <!-- waveform: mirrored bars, staggered -->
   <g transform="translate(440 212)">
-    <g fill="url(#gw)">
+    <g fill="#F05033">
       <rect class="bar" x="-300" y="-6"  width="8" height="12" rx="4" style="animation-delay:.00s"/>
       <rect class="bar" x="-284" y="-10" width="8" height="20" rx="4" style="animation-delay:.02s"/>
       <rect class="bar" x="-268" y="-14" width="8" height="28" rx="4" style="animation-delay:.04s"/>
@@ -95,14 +74,14 @@
   </g>
 
   <!-- prompt -->
-  <text x="88" y="288" class="mono" font-size="20" fill="#39FF88">❯</text>
-  <g clip-path="url(#typeclip)"><text x="118" y="288" class="mono" font-size="20" fill="#E6E6F0">git push</text></g>
-  <rect class="caret" x="228" y="272" width="10" height="20" fill="#E6E6F0" opacity=".8"/>
+  <text x="88" y="288" class="mono" font-size="20" fill="#F05033">❯</text>
+  <g clip-path="url(#typeclip)"><text x="118" y="288" class="mono" font-size="20" fill="#EDEDED">git push</text></g>
+  <rect class="caret" x="228" y="272" width="10" height="20" fill="#EDEDED" opacity=".8"/>
 
   <!-- sound burst -->
   <g transform="translate(760 281)">
-    <circle class="ring" r="18" fill="none" stroke="#FF2BD6" stroke-width="2"/>
-    <circle class="ring" r="18" fill="none" stroke="#00F0FF" stroke-width="2" style="animation-delay:.15s"/>
-    <text x="0" y="7" text-anchor="middle" class="mono" font-size="20" fill="#FFB000" font-weight="700">FAAAH</text>
+    <circle class="ring" r="18" fill="none" stroke="#F05033" stroke-width="2"/>
+    <circle class="ring" r="18" fill="none" stroke="#EDEDED" stroke-width="1.5" style="animation-delay:.15s"/>
+    <text x="0" y="7" text-anchor="middle" class="mono" font-size="20" fill="#EDEDED" font-weight="700">FAAAH</text>
   </g>
 </svg>

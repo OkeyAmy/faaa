@@ -4,10 +4,10 @@
 
 **git push, but louder.**
 
-[![ci](https://github.com/okeyamy/faaa/actions/workflows/ci.yml/badge.svg)](https://github.com/okeyamy/faaa/actions/workflows/ci.yml)
-[![release](https://img.shields.io/github/v/release/okeyamy/faaa?color=8B5CFF&labelColor=0B0B16)](https://github.com/okeyamy/faaa/releases)
-![platforms](https://img.shields.io/badge/macOS%20%7C%20linux%20%7C%20windows-00F0FF?labelColor=0B0B16)
-[![license](https://img.shields.io/badge/license-MIT-FF2BD6?labelColor=0B0B16)](LICENSE)
+[![ci](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml/badge.svg)](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/OkeyAmy/faaa?color=F05033&labelColor=0A0A0A)](https://github.com/OkeyAmy/faaa/releases)
+![platforms](https://img.shields.io/badge/macOS%20%7C%20linux%20%7C%20windows-F05033?labelColor=0A0A0A)
+[![license](https://img.shields.io/badge/license-MIT-EDEDED?labelColor=0A0A0A)](LICENSE)
 
 </div>
 
@@ -24,19 +24,19 @@ stay silent, because you don't deserve a sound for those.
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/okeyamy/faaa/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.sh | sh
 ```
 
-Other package managers:
+Windows (PowerShell):
 
-```sh
-npm i -g faaa
-brew install okeyamy/tap/faaa
-scoop bucket add faaa https://github.com/okeyamy/scoop-bucket && scoop install faaa
-go install github.com/okeyamy/faaa/cmd/faaa@latest
+```powershell
+irm https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.ps1 | iex
 ```
 
-It's one binary with no runtime, no daemon and no config file to write by hand.
+Or `npm i -g faaa`, or `go install github.com/okeyamy/faaa/cmd/faaa@latest`.
+
+That's one binary: no runtime, no daemon. The installer puts it on your
+`PATH` and arms git.
 
 ## Use
 
@@ -72,6 +72,7 @@ no step two.
 | `/`     | search anything, or paste a link                    |
 | `tab`   | trending / classics / mine                          |
 | `[` `]` | clip length, 5–60s                                  |
+| `j` `k` `g` `G` | move, top, bottom                           |
 | `t`     | cycle theme                                         |
 | `x`     | mute                                                |
 
@@ -89,7 +90,9 @@ faaa add ./my-sound.mp3 "the name"
 faaa add https://example.com/clip.mp3
 ```
 
-TikTok links need nothing else installed. Instagram, YouTube and friends go
+TikTok video links need nothing else installed. Sound pages
+(`tiktok.com/music/...`) are locked behind TikTok's signed API, so open any
+video using the sound, hit Share, then Copy link, and paste that. Instagram, YouTube and friends go
 through `yt-dlp`, which faaa fetches once (3MB) if you have Python, and those
 links also need `ffmpeg`.
 
@@ -122,12 +125,34 @@ faaa set <id>            arm a sound without the picker
 faaa length [sec]        clip length
 faaa list                everything available
 faaa update              pull the newest trending list now
-faaa theme [name]        catppuccin dracula gruvbox matrix neon nord rosepine sunset tokyonight
+faaa fail <id|off>       a sound for rejected pushes (sad-violin works)
+faaa volume [0-100]      because it's 2am
+faaa theme [name]        terminal ink tokyonight catppuccin rosepine gruvbox nord
 faaa off | on            mute / unmute
 faaa share <id>          submit your sound to the shared list
 faaa doctor              something's quiet, find out why
 faaa uninstall           disarm and restore your git config exactly
 ```
+
+## On a call?
+
+```sh
+FAAA_MUTE=1 git push     # this push only
+faaa off                 # until faaa on
+```
+
+## Team anthem
+
+Drop a `.faaa` file in a repo:
+
+```
+vine-boom
+sad-violin
+```
+
+Line one is what plays when anyone on the team pushes there. Line two,
+if present, plays when a push gets rejected. Commit it. Your coworkers will
+thank you. Probably.
 
 ## Configure
 
@@ -135,15 +160,20 @@ faaa uninstall           disarm and restore your git config exactly
 
 ```json
 {
-  "theme": "neon",
-  "colors": { "accent": "#00F0FF", "accent2": "#FF2BD6", "hot": "#FFB000" },
+  "theme": "terminal",
+  "colors": { "accent": "#F05033" },
   "max_seconds": 15,
+  "volume": 0.6,
+  "fail_sound": "sad-violin",
   "player": ["mpv", "--really-quiet"]
 }
 ```
 
-The color slots are `fg`, `dim`, `accent`, `accent2`, `hot`, `ok` and `border`,
-and any of them can be overridden. `player` defaults to whatever the OS already
+The default theme is `terminal`. It uses your terminal's 16 ANSI colors, so
+faaa matches whatever you've already set up: Omarchy, rose-pine, a scheme you
+wrote by hand. `ink` is monochrome with git orange. The color slots are `fg`,
+`dim`, `accent`, `accent2`, `hot`, `ok` and `border`, and any of them can be
+overridden with hex or an ANSI number. `player` defaults to whatever the OS already
 has: `pw-play` / `paplay` / `aplay` on Linux, `afplay` on macOS, PowerShell on
 Windows.
 
