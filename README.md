@@ -33,7 +33,7 @@ Windows (PowerShell):
 irm https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.ps1 | iex
 ```
 
-Or `npm i -g faaa`, or `go install github.com/okeyamy/faaa/cmd/faaa@latest`.
+Or `npm i -g @okeyamy/faaa`, or `go install github.com/okeyamy/faaa/cmd/faaa@latest`.
 
 That's one binary: no runtime, no daemon. The installer puts it on your
 `PATH` and arms git.

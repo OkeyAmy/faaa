@@ -1,5 +1,5 @@
 {
-  "name": "faaa",
+  "name": "@okeyamy/faaa",
   "version": "0.0.0",
   "description": "git push, but louder — play a trending sound on every git push",
   "bin": { "faaa": "run.js" },
