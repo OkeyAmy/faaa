@@ -13,19 +13,30 @@ if (!plat || !arch) {
   process.exit(1);
 }
 const ext = plat === "windows" ? "zip" : "tar.gz";
-const url = `https://github.com/OkeyAmy/faaa/releases/download/v${version}/faaa_${plat}_${arch}.${ext}`;
+const file = `faaa_${plat}_${arch}.${ext}`;
+const base = "https://github.com/OkeyAmy/faaa/releases";
+// exact release for this package version; fall back to latest if it's missing
+const urls = [`${base}/download/v${version}/${file}`, `${base}/latest/download/${file}`];
 const bin = path.join(__dirname, "bin");
 const archive = path.join(os.tmpdir(), `faaa-${process.pid}.${ext}`);
 
-function get(u, cb) {
+function get(u, cb, next) {
   https.get(u, { headers: { "User-Agent": "faaa-npm" } }, (r) => {
-    if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) return get(r.headers.location, cb);
-    if (r.statusCode !== 200) { console.error(`faaa: download failed ${r.statusCode} ${u}`); process.exit(1); }
+    if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) return get(r.headers.location, cb, next);
+    if (r.statusCode !== 200) { r.resume(); return next(`${r.statusCode} ${u}`); }
     r.pipe(fs.createWriteStream(archive)).on("finish", cb);
-  }).on("error", (e) => { console.error("faaa:", e.message); process.exit(1); });
+  }).on("error", (e) => next(e.code || e.message || String(e)));
 }
 
-get(url, () => {
+function tryUrls(i, cb) {
+  get(urls[i], cb, (why) => {
+    if (i + 1 < urls.length) return tryUrls(i + 1, cb);
+    console.error(`faaa: download failed: ${why}`);
+    process.exit(1);
+  });
+}
+
+tryUrls(0, () => {
   fs.mkdirSync(bin, { recursive: true });
   // bsdtar ships with macOS and Windows 10+, GNU tar with Linux; both read zip via -a/-x on Windows.
   execFileSync("tar", ["-xf", archive, "-C", bin]);
