@@ -1,4 +1,33 @@
+# build output
 /faaa
 /faaa.exe
+/faaa-bin
 /dist/
+*.test
+*.out
+*.prof
+coverage.*
+
+# npm wrapper (binary is downloaded on install)
 /npm/bin/
+/npm/node_modules/
+/npm/*.tgz
+
+# half-written downloads / conversions
+*.part
+
+# local tooling and notes
+.remember/
+.claude/
+.env
+.env.*
+
+# editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
