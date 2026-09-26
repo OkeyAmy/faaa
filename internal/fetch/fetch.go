@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -33,6 +34,10 @@ var client = &http.Client{
 	Transport: &http.Transport{
 		Proxy: http.ProxyFromEnvironment, ForceAttemptHTTP2: true,
 		MaxIdleConnsPerHost: 8, IdleConnTimeout: 2 * time.Minute,
+		// fail fast on unreachable hosts instead of hanging the whole timeout
+		DialContext:           (&net.Dialer{Timeout: 6 * time.Second}).DialContext,
+		TLSHandshakeTimeout:   6 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second,
 	},
 }
 
@@ -158,19 +163,32 @@ func tiktokSound(link, dst string) (title, path string, err error) {
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return "", "", fmt.Errorf("tiktok lookup failed: %w", err)
 	}
-	mp3 := r.Data.MusicInfo.Play
-	if mp3 == "" {
-		mp3 = r.Data.Music
-	}
-	if r.Code != 0 || mp3 == "" {
+	if r.Code != 0 {
 		return "", "", fmt.Errorf("couldn't read that TikTok (%s)", r.Msg)
 	}
-	p, err := httpGet(mp3, dst+".mp3")
+	// TikTok serves the same sound from several CDN hosts; try each.
+	var p string
+	err = errors.New("that TikTok has no downloadable sound")
+	for _, u := range []string{r.Data.MusicInfo.Play, r.Data.Music} {
+		if u == "" {
+			continue
+		}
+		if p, err = httpGet(u, dst+".mp3"); err == nil {
+			break
+		}
+	}
+	if err != nil {
+		var ne net.Error
+		if errors.As(err, &ne) && ne.Timeout() {
+			return "", "", errors.New("TikTok's servers aren't reachable from this network (blocked or down) — try another network, or save the audio and run: faaa add ./file.mp3")
+		}
+		return "", "", err
+	}
 	title = r.Data.MusicInfo.Title
 	if a := r.Data.MusicInfo.Author; strings.HasPrefix(strings.ToLower(title), "original sound") && a != "" {
 		title = a + " (original sound)"
 	}
-	return title, p, err
+	return title, p, nil
 }
 
 // FromLink pulls the audio of any video/post link yt-dlp understands
