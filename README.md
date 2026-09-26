@@ -65,16 +65,16 @@ no step two.
     Vine Boom                                                          0:01
 ```
 
-| key     | action                                              |
-|---------|-----------------------------------------------------|
-| `space` | preview                                             |
-| `enter` | arm it: this plays on your next push                |
-| `/`     | search anything, or paste a link                    |
-| `tab`   | trending / classics / mine                          |
-| `[` `]` | clip length, 5–60s                                  |
-| `j` `k` `g` `G` | move, top, bottom                           |
-| `t`     | cycle theme                                         |
-| `x`     | mute                                                |
+| key             | action                               |
+| --------------- | ------------------------------------ |
+| `space`         | preview                              |
+| `enter`         | arm it: this plays on your next push |
+| `/`             | search anything, or paste a link     |
+| `tab`           | trending / classics / mine           |
+| `[` `]`         | clip length, 5–60s                   |
+| `j` `k` `g` `G` | move, top, bottom                    |
+| `t`             | cycle theme                          |
+| `x`             | mute                                 |
 
 Search isn't limited to the list. Type a name and faaa looks it up online
 while you type.
@@ -211,7 +211,7 @@ the background with an ETag. Nothing runs on commit, checkout, status or fetch.
 
 ```sh
 go test ./...
-sh scripts/e2e.sh ./faaa   # real push / fetch / reject in a sandboxed $HOME
+sh scripts/e1e.sh ./faaa   # real push / fetch / reject in a sandboxed $HOME
 go run ./scraper           # rebuild the trending list
 ```
 
@@ -221,5 +221,5 @@ right to share.
 
 ## License
 
-MIT. Sounds belong to their creators. The repository stores links, not
+[MIT](LICENSE). Sounds belong to their creators. The repository stores links, not
 audio, apart from the built-in classics.
