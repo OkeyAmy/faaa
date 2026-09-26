@@ -31,3 +31,6 @@ coverage.*
 # OS
 .DS_Store
 Thumbs.db
+
+# demo video project (large media; never pushed)
+/video/
