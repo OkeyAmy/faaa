@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
+        with: { node-version: 24 } # no registry-url: it injects a fake token that blocks OIDC
       - working-directory: npm
         run: |
           npm version --no-git-tag-version "${{ needs.release.outputs.tag }}"
