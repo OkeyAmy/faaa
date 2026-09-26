@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" role="img" aria-label="faaa — git push, but louder">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#00F0FF"/>
+      <stop offset="0.5" stop-color="#8B5CFF"/>
+      <stop offset="1" stop-color="#FF2BD6"/>
+    </linearGradient>
+    <linearGradient id="gw" gradientUnits="userSpaceOnUse" x1="-300" x2="300" y1="0" y2="0">
+      <stop offset="0" stop-color="#00F0FF"/>
+      <stop offset="0.5" stop-color="#8B5CFF"/>
+      <stop offset="1" stop-color="#FF2BD6"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B0B16"/>
+      <stop offset="1" stop-color="#15102A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.55" r="0.6">
+      <stop offset="0" stop-color="#8B5CFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#8B5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="6"/></filter>
+    <style>
+      .mono { font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; }
+      .bar  { transform-box: fill-box; transform-origin: 50% 50%; animation: beat 1.6s cubic-bezier(.2,.8,.2,1) infinite; }
+      @keyframes beat {
+        0%, 30%  { transform: scaleY(0.12); }
+        38%      { transform: scaleY(1); }
+        60%      { transform: scaleY(0.55); }
+        100%     { transform: scaleY(0.12); }
+      }
+      .type { animation: type 1.6s steps(8) infinite; }
+      @keyframes type { 0% { width: 0; } 25%, 100% { width: 104px; } }
+      .ring { transform-box: fill-box; transform-origin: center; animation: ring 1.6s ease-out infinite; }
+      @keyframes ring { 0%, 34% { transform: scale(0.4); opacity: 0; } 40% { opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+      .caret { animation: blink 0.8s steps(1) infinite; }
+      @keyframes blink { 50% { opacity: 0; } }
+    </style>
+    <clipPath id="typeclip"><rect class="type" x="118" y="266" width="104" height="30"/></clipPath>
+  </defs>
+
+  <rect width="880" height="360" rx="22" fill="url(#bg)"/>
+  <rect width="880" height="360" rx="22" fill="url(#glow)"/>
+  <rect x="0.5" y="0.5" width="879" height="359" rx="22" fill="none" stroke="#2A2A48"/>
+
+  <!-- window dots -->
+  <circle cx="30" cy="28" r="6" fill="#FF5F57"/><circle cx="50" cy="28" r="6" fill="#FEBC2E"/><circle cx="70" cy="28" r="6" fill="#28C840"/>
+
+  <!-- wordmark -->
+  <text x="440" y="118" text-anchor="middle" class="mono" font-size="84" font-weight="800" letter-spacing="18" fill="url(#g)">faaa</text>
+  <text x="440" y="118" text-anchor="middle" class="mono" font-size="84" font-weight="800" letter-spacing="18" fill="url(#g)" opacity=".45" filter="url(#blur)">faaa</text>
+  <text x="440" y="152" text-anchor="middle" class="mono" font-size="17" fill="#8A8AB0" letter-spacing="4">GIT PUSH, BUT LOUDER</text>
+
+  <!-- waveform: mirrored bars, staggered -->
+  <g transform="translate(440 212)">
+    <g fill="url(#gw)">
+      <rect class="bar" x="-300" y="-6"  width="8" height="12" rx="4" style="animation-delay:.00s"/>
+      <rect class="bar" x="-284" y="-10" width="8" height="20" rx="4" style="animation-delay:.02s"/>
+      <rect class="bar" x="-268" y="-14" width="8" height="28" rx="4" style="animation-delay:.04s"/>
+      <rect class="bar" x="-252" y="-20" width="8" height="40" rx="4" style="animation-delay:.06s"/>
+      <rect class="bar" x="-236" y="-16" width="8" height="32" rx="4" style="animation-delay:.08s"/>
+      <rect class="bar" x="-220" y="-26" width="8" height="52" rx="4" style="animation-delay:.10s"/>
+      <rect class="bar" x="-204" y="-34" width="8" height="68" rx="4" style="animation-delay:.12s"/>
+      <rect class="bar" x="-188" y="-28" width="8" height="56" rx="4" style="animation-delay:.14s"/>
+      <rect class="bar" x="-172" y="-40" width="8" height="80" rx="4" style="animation-delay:.16s"/>
+      <rect class="bar" x="-156" y="-30" width="8" height="60" rx="4" style="animation-delay:.18s"/>
+      <rect class="bar" x="-140" y="-22" width="8" height="44" rx="4" style="animation-delay:.20s"/>
+      <rect class="bar" x="-124" y="-36" width="8" height="72" rx="4" style="animation-delay:.22s"/>
+      <rect class="bar" x="-108" y="-44" width="8" height="88" rx="4" style="animation-delay:.24s"/>
+      <rect class="bar" x="-92"  y="-38" width="8" height="76" rx="4" style="animation-delay:.26s"/>
+      <rect class="bar" x="-76"  y="-46" width="8" height="92" rx="4" style="animation-delay:.28s"/>
+      <rect class="bar" x="-60"  y="-40" width="8" height="80" rx="4" style="animation-delay:.30s"/>
+      <rect class="bar" x="-44"  y="-30" width="8" height="60" rx="4" style="animation-delay:.32s"/>
+      <rect class="bar" x="-28"  y="-42" width="8" height="84" rx="4" style="animation-delay:.34s"/>
+      <rect class="bar" x="-12"  y="-48" width="8" height="96" rx="4" style="animation-delay:.36s"/>
+      <rect class="bar" x="4"    y="-44" width="8" height="88" rx="4" style="animation-delay:.38s"/>
+      <rect class="bar" x="20"   y="-34" width="8" height="68" rx="4" style="animation-delay:.40s"/>
+      <rect class="bar" x="36"   y="-40" width="8" height="80" rx="4" style="animation-delay:.42s"/>
+      <rect class="bar" x="52"   y="-28" width="8" height="56" rx="4" style="animation-delay:.44s"/>
+      <rect class="bar" x="68"   y="-36" width="8" height="72" rx="4" style="animation-delay:.46s"/>
+      <rect class="bar" x="84"   y="-24" width="8" height="48" rx="4" style="animation-delay:.48s"/>
+      <rect class="bar" x="100"  y="-30" width="8" height="60" rx="4" style="animation-delay:.50s"/>
+      <rect class="bar" x="116"  y="-18" width="8" height="36" rx="4" style="animation-delay:.52s"/>
+      <rect class="bar" x="132"  y="-24" width="8" height="48" rx="4" style="animation-delay:.54s"/>
+      <rect class="bar" x="148"  y="-14" width="8" height="28" rx="4" style="animation-delay:.56s"/>
+      <rect class="bar" x="164"  y="-20" width="8" height="40" rx="4" style="animation-delay:.58s"/>
+      <rect class="bar" x="180"  y="-12" width="8" height="24" rx="4" style="animation-delay:.60s"/>
+      <rect class="bar" x="196"  y="-16" width="8" height="32" rx="4" style="animation-delay:.62s"/>
+      <rect class="bar" x="212"  y="-9"  width="8" height="18" rx="4" style="animation-delay:.64s"/>
+      <rect class="bar" x="228"  y="-12" width="8" height="24" rx="4" style="animation-delay:.66s"/>
+      <rect class="bar" x="244"  y="-7"  width="8" height="14" rx="4" style="animation-delay:.68s"/>
+      <rect class="bar" x="260"  y="-9"  width="8" height="18" rx="4" style="animation-delay:.70s"/>
+      <rect class="bar" x="276"  y="-5"  width="8" height="10" rx="4" style="animation-delay:.72s"/>
+      <rect class="bar" x="292"  y="-4"  width="8" height="8"  rx="4" style="animation-delay:.74s"/>
+    </g>
+  </g>
+
+  <!-- prompt -->
+  <text x="88" y="288" class="mono" font-size="20" fill="#39FF88">❯</text>
+  <g clip-path="url(#typeclip)"><text x="118" y="288" class="mono" font-size="20" fill="#E6E6F0">git push</text></g>
+  <rect class="caret" x="228" y="272" width="10" height="20" fill="#E6E6F0" opacity=".8"/>
+
+  <!-- sound burst -->
+  <g transform="translate(760 281)">
+    <circle class="ring" r="18" fill="none" stroke="#FF2BD6" stroke-width="2"/>
+    <circle class="ring" r="18" fill="none" stroke="#00F0FF" stroke-width="2" style="animation-delay:.15s"/>
+    <text x="0" y="7" text-anchor="middle" class="mono" font-size="20" fill="#FFB000" font-weight="700">FAAAH</text>
+  </g>
+</svg>

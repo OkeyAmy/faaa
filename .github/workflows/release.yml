@@ -1,0 +1,26 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go.mod }
+      - run: go test ./... && sh scripts/e2e.sh "$(go build -o /tmp/faaa ./cmd/faaa && echo /tmp/faaa)"
+      - uses: goreleaser/goreleaser-action@v6
+        with: { args: release --clean }
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, registry-url: "https://registry.npmjs.org" }
+      - name: publish npm wrapper
+        working-directory: npm
+        run: |
+          npm version --no-git-tag-version "${GITHUB_REF_NAME#v}"
+          npm publish --access public
+        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }

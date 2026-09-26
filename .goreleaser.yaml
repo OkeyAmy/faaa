@@ -1,0 +1,24 @@
+version: 2
+builds:
+  - main: ./cmd/faaa
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: ["-s -w -X main.version={{.Version}}"]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "faaa_{{ .Os }}_{{ .Arch }}"
+checksum:
+  name_template: checksums.txt
+brews:
+  - repository: { owner: okeyamy, name: homebrew-tap }
+    homepage: https://github.com/okeyamy/faaa
+    description: git push, but louder
+scoops:
+  - repository: { owner: okeyamy, name: scoop-bucket }
+    homepage: https://github.com/okeyamy/faaa
+    description: git push, but louder

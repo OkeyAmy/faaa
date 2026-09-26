@@ -1,0 +1,11 @@
+{
+  "name": "faaa",
+  "version": "0.0.0",
+  "description": "git push, but louder — play a trending sound on every git push",
+  "bin": { "faaa": "run.js" },
+  "scripts": { "postinstall": "node install.js" },
+  "files": ["run.js", "install.js"],
+  "repository": "github:okeyamy/faaa",
+  "license": "MIT",
+  "keywords": ["git", "push", "sound", "hook", "tui", "fun", "meme"]
+}
