@@ -1,11 +1,30 @@
 {
   "name": "@okeyamy/faaa",
   "version": "0.0.0",
-  "description": "git push, but louder — play a trending sound on every git push",
-  "bin": { "faaa": "run.js" },
-  "scripts": { "postinstall": "node install.js" },
-  "files": ["run.js", "install.js"],
-  "repository": "github:OkeyAmy/faaa",
+  "description": "git push, but louder \u2014 play a trending sound on every git push",
+  "bin": {
+    "faaa": "run.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "run.js",
+    "install.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OkeyAmy/faaa.git"
+  },
   "license": "MIT",
-  "keywords": ["git", "push", "sound", "hook", "tui", "fun", "meme"]
+  "keywords": [
+    "git",
+    "push",
+    "sound",
+    "hook",
+    "tui",
+    "fun",
+    "meme"
+  ],
+  "homepage": "https://github.com/OkeyAmy/faaa"
 }
