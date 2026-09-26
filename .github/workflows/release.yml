@@ -24,12 +24,26 @@ jobs:
       - run: go build -o /tmp/faaa ./cmd/faaa && sh scripts/e2e.sh /tmp/faaa
       - id: tag
         run: |
-          last=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo v0.0.0)
-          IFS=. read -r maj min pat <<EOF2
-          ${last#v}
-          EOF2
-          next="v$maj.$min.$((pat+1))"
-          git tag "$next" && git push origin "$next"
+          # reuse a tag that already points at HEAD (idempotent re-runs)
+          next=$(git tag -l 'v*' --points-at HEAD --sort=-v:refname | head -n1)
+          if [ -z "$next" ]; then
+            # highest existing v* tag by version order -- git describe only walks
+            # ancestry and can miss (or pick the wrong one of) tags on other commits
+            last=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+            last=${last#v}
+            maj=${last%%.*}
+            rest=${last#*.}
+            min=${rest%%.*}
+            pat=${rest##*.}
+            next="v$maj.$min.$((pat + 1))"
+            # bump past any tag that already exists, whatever commit it is on
+            while git rev-parse -q --verify "refs/tags/$next" >/dev/null; do
+              pat=$((pat + 1))
+              next="v$maj.$min.$pat"
+            done
+            git tag "$next"
+          fi
+          git push origin "$next"
           echo "tag=$next" >> "$GITHUB_OUTPUT"
       - uses: goreleaser/goreleaser-action@v6
         with: { args: release --clean }
