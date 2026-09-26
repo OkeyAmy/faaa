@@ -46,7 +46,7 @@ jobs:
       - working-directory: npm
         run: |
           npm version --no-git-tag-version "${{ needs.release.outputs.tag }}"
-          npm publish --provenance --access public
+          npm publish --provenance --access public --loglevel verbose
 
   verify-install:
     needs: release
