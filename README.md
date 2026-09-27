@@ -47,23 +47,9 @@ faaa
 The first run wires itself into git for every repo on the machine. There's
 no step two.
 
-```
-  f a a a   git push, but louder                          ✂ 15s   ◉ armed
+<p align="center"><img src="assets/picker.gif" alt="the faaa picker: waveform preview with a moving playhead, then pasting a TikTok link" width="100%"></p>
 
-                 ▇▁▂█▄███│█▄
-                 ████████│██▃▃▄▅▂ ▅
-              ▁▁▂████████│██████████████████▇████▇█▆▇▆▄▃▆▆▄▅▅▃▄▄▄▄▃▃▃▂▂▂
-         ░░░░░░░░████████│█████████▓██▓▓▓▓▓▓▒▒▓▓▒▒▓▒▒▒▒░▒▒▒▒▒░▒▒░▒░░░░░░
-                 █▓▓█████│██▒▒▒▒▒░▒ ░░
-
-  FAAAH                                      0:01 ━━━━━━━●───────── 0:02
-
-  / search or paste a link              all  ·  trending  ·  classics  ·  mine
-
-  ▌ FAAAH                                                           ◉  0:02
-    FAHHHHHHHH                                                         0:02
-    Vine Boom                                                          0:01
-```
+The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
 
 | key             | action                               |
 | --------------- | ------------------------------------ |
