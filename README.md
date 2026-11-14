@@ -6,8 +6,8 @@
 
 [![ci](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml/badge.svg)](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/OkeyAmy/faaa?color=F05033&labelColor=0A0A0A)](https://github.com/OkeyAmy/faaa/releases)
-![downloads](https://img.shields.io/github/downloads/OkeyAmy/faaa/total?color=F05033&labelColor=0A0A0A)
-[![npm](https://img.shields.io/npm/dm/@okeyamy/faaa?color=F05033&labelColor=0A0A0A)](https://www.npmjs.com/package/@okeyamy/faaa)
+![release downloads](https://img.shields.io/github/downloads/OkeyAmy/faaa/total?label=release%20downloads&color=F05033&labelColor=0A0A0A)
+[![npm downloads](https://img.shields.io/npm/dm/@okeyamy/faaa?label=npm%20downloads%2Fmo&color=F05033&labelColor=0A0A0A)](https://www.npmjs.com/package/@okeyamy/faaa)
 ![platforms](https://img.shields.io/badge/macOS%20%7C%20linux%20%7C%20windows-F05033?labelColor=0A0A0A)
 [![license](https://img.shields.io/badge/license-MIT-EDEDED?labelColor=0A0A0A)](LICENSE)
 
@@ -249,8 +249,7 @@ doesn't run, they stop and leave the copy you already had. A broken release
 can't eat your install.
 
 **What does it collect?**
-Nothing. No telemetry, no account, no server. The download badge is GitHub and
-npm counting files, not you.
+Nothing. No telemetry, no account, no server.
 
 **Does it work in CI?**
 It runs. You want `FAAA_MUTE=1` on the push, or `faaa off` in that environment,
