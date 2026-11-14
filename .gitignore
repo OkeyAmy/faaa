@@ -17,6 +17,7 @@ coverage.*
 *.part
 
 # local tooling and notes
+.local/
 .remember/
 .claude/
 .env
