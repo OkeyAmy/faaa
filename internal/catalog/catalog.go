@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/okeyamy/faaa/internal/audio"
@@ -173,6 +175,79 @@ func Find(id string) (Sound, bool) {
 		}
 	}
 	return Sound{}, false
+}
+
+// lastFile holds the ordered result set of the most recent search, so the row
+// numbers shown to the user stay valid for `faaa set 2` / `faaa play 2`.
+func lastFile() string { return filepath.Join(paths.Cache(), "last.json") }
+
+// Listing returns the last search result set, in display order.
+func Listing() []Sound {
+	var s []Sound
+	if b, err := os.ReadFile(lastFile()); err == nil {
+		_ = json.Unmarshal(b, &s)
+	}
+	return s
+}
+
+// SaveListing replaces the last search result set.
+func SaveListing(s []Sound) error {
+	_ = os.MkdirAll(paths.Cache(), 0o755)
+	b, _ := json.Marshal(s)
+	return os.WriteFile(lastFile(), b, 0o644)
+}
+
+// Resolve turns what the user typed into a sound. Exact ids win (hooks, `.faaa`
+// and older scripts rely on that), then a row number from the last listing,
+// then a unique case-insensitive id prefix, then a unique case-insensitive
+// title substring. When more than one sound matches, candidates holds up to
+// five of them and ok is false so nothing gets armed.
+func Resolve(q string) (s Sound, candidates []Sound, ok bool) {
+	q = strings.TrimSpace(q)
+	if q == "" {
+		return Sound{}, nil, false
+	}
+	pool := append(All(Cached()), Recent()...)
+	for _, x := range pool {
+		if x.ID == q {
+			return x, nil, true
+		}
+	}
+	if n, err := strconv.Atoi(q); err == nil && n > 0 {
+		if last := Listing(); n <= len(last) {
+			return last[n-1], nil, true
+		}
+	}
+	needle := strings.ToLower(q)
+	if m := pick(pool, func(x Sound) bool { return strings.HasPrefix(strings.ToLower(x.ID), needle) }); len(m) == 1 {
+		return m[0], nil, true
+	} else if len(m) > 1 {
+		return Sound{}, m, false
+	}
+	if m := pick(pool, func(x Sound) bool { return strings.Contains(strings.ToLower(x.Title), needle) }); len(m) == 1 {
+		return m[0], nil, true
+	} else if len(m) > 1 {
+		return Sound{}, m, false
+	}
+	return Sound{}, nil, false
+}
+
+// pick filters pool, de-duplicating by id, and keeps at most five matches so an
+// ambiguous query never dumps the whole catalog.
+func pick(pool []Sound, f func(Sound) bool) []Sound {
+	seen := map[string]bool{}
+	var out []Sound
+	for _, s := range pool {
+		if seen[s.ID] || !f(s) {
+			continue
+		}
+		seen[s.ID] = true
+		out = append(out, s)
+		if len(out) == 5 {
+			break
+		}
+	}
+	return out
 }
 
 // Ready reports whether the decoded WAV exists locally.

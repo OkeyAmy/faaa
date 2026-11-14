@@ -19,7 +19,7 @@ type Config struct {
 	Theme      string   `json:"theme"`                 // tui palette name
 	NoAutoArm  bool     `json:"no_auto_arm,omitempty"` // set by `faaa uninstall`
 	FailSound  string   `json:"fail_sound,omitempty"`  // plays on rejected pushes ("" = silent)
-	Volume     float64  `json:"volume,omitempty"`      // 0..1, 0 = full
+	Volume     float64  `json:"volume,omitempty"`      // 0..1; legacy 0 = full volume (CLI rejects 0)
 	// Colors overrides palette slots (fg, dim, accent, accent2, hot, ok, border) with hex.
 	Colors map[string]string `json:"colors,omitempty"`
 }

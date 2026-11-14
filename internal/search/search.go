@@ -4,6 +4,7 @@ package search
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"io"
@@ -24,6 +25,10 @@ const ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Geck
 
 var client = &http.Client{Timeout: 6 * time.Second}
 
+// ErrNotFound means the site answered 404: a normal "no such sound", not an
+// error worth showing the user.
+var ErrNotFound = errors.New("not found")
+
 func get(u string) ([]byte, error) {
 	req, _ := http.NewRequest("GET", u, nil)
 	req.Header.Set("User-Agent", ua)
@@ -32,6 +37,9 @@ func get(u string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrNotFound
+	}
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("%s", resp.Status)
 	}
@@ -62,8 +70,14 @@ func Web(q string) ([]catalog.Sound, error) {
 			}
 		}
 	}
-	if len(out) == 0 && errs[0] != nil {
-		return nil, errs[0]
+	if len(out) == 0 {
+		// 404 or a genuinely empty hit list is "no results", not an HTTP error.
+		for _, e := range errs {
+			if e != nil && !errors.Is(e, ErrNotFound) {
+				return nil, e
+			}
+		}
+		return nil, nil
 	}
 	remember(out)
 	return out, nil

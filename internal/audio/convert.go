@@ -141,6 +141,19 @@ type Clip struct {
 	Len, Full, Start float64
 }
 
+// ErrNotAudio marks input the decoder could not turn into audio: a format it
+// cannot read, a codec it cannot decode, or an empty file. Callers classify
+// failures with errors.Is instead of matching the decoder's message.
+var ErrNotAudio = errors.New("not audio")
+
+// notAudioError keeps the decoder's original message (which names a temp file
+// and an ffmpeg exit code) while making errors.Is(err, ErrNotAudio) true.
+type notAudioError struct{ err error }
+
+func (e notAudioError) Error() string        { return e.err.Error() }
+func (e notAudioError) Unwrap() error        { return e.err }
+func (e notAudioError) Is(target error) bool { return target == ErrNotAudio }
+
 // Convert decodes src (wav/mp3 natively, anything else via ffmpeg if
 // installed), cuts the best maxSec window and writes a normalised WAV to dst.
 func Convert(src, dst string, maxSec float64) (Clip, error) {
@@ -162,13 +175,13 @@ func Convert(src, dst string, maxSec float64) (Clip, error) {
 		r, err = viaFFmpeg(src)
 	}
 	if err != nil {
-		return Clip{}, fmt.Errorf("decode %s: %w", filepath.Base(src), err)
+		return Clip{}, notAudioError{fmt.Errorf("decode %s: %w", filepath.Base(src), err)}
 	}
 	b = nil // encoded bytes no longer needed
 	c := Clip{Full: float64(len(r.samples)/max(r.channels, 1)) / float64(max(r.rate, 1))}
 	p, start := normalise(&r, maxSec)
 	if len(p) <= int(LeadIn*SampleRate) {
-		return c, errors.New("sound is empty")
+		return c, notAudioError{errors.New("sound is empty")}
 	}
 	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return c, err

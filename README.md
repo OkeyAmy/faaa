@@ -6,6 +6,8 @@
 
 [![ci](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml/badge.svg)](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/OkeyAmy/faaa?color=F05033&labelColor=0A0A0A)](https://github.com/OkeyAmy/faaa/releases)
+![downloads](https://img.shields.io/github/downloads/OkeyAmy/faaa/total?color=F05033&labelColor=0A0A0A)
+[![npm](https://img.shields.io/npm/dm/@okeyamy/faaa?color=F05033&labelColor=0A0A0A)](https://www.npmjs.com/package/@okeyamy/faaa)
 ![platforms](https://img.shields.io/badge/macOS%20%7C%20linux%20%7C%20windows-F05033?labelColor=0A0A0A)
 [![license](https://img.shields.io/badge/license-MIT-EDEDED?labelColor=0A0A0A)](LICENSE)
 
@@ -34,6 +36,9 @@ irm https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.ps1 | iex
 ```
 
 Or `npm i -g @okeyamy/faaa`, or `go install github.com/okeyamy/faaa/cmd/faaa@latest`.
+
+Building from source needs Go 1.26.8 or newer: the `go` directive in `go.mod`
+makes the Go toolchain download itself, which fails behind a restricted network.
 
 That's one binary: no runtime, no daemon. The installer puts it on your
 `PATH` and arms git.
@@ -111,8 +116,9 @@ faaa set <id>            arm a sound without the picker
 faaa length [sec]        clip length
 faaa list                everything available
 faaa update              pull the newest trending list now
+faaa upgrade             check for a newer release (and how to install it)
 faaa fail <id|off>       a sound for rejected pushes (sad-violin works)
-faaa volume [0-100]      because it's 2am
+faaa volume [1-100]      this tool's playback gain, not system/device volume
 faaa theme [name]        terminal ink tokyonight catppuccin rosepine gruvbox nord
 faaa off | on            mute / unmute
 faaa share <id>          submit your sound to the shared list
@@ -154,6 +160,8 @@ thank you. Probably.
   "player": ["mpv", "--really-quiet"]
 }
 ```
+
+Setting `"volume": 0` in config.json means full volume (legacy); use `faaa off` to mute.
 
 The default theme is `terminal`. It uses your terminal's 16 ANSI colors, so
 faaa matches whatever you've already set up: Omarchy, rose-pine, a scheme you
