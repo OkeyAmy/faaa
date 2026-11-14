@@ -5,7 +5,6 @@
 **git push, but louder.**
 
 [![release](https://img.shields.io/github/v/release/OkeyAmy/faaa?color=F05033&labelColor=0A0A0A)](https://github.com/OkeyAmy/faaa/releases)
-![release downloads](https://img.shields.io/github/downloads/OkeyAmy/faaa/total?label=release%20downloads&color=F05033&labelColor=0A0A0A)
 [![npm downloads](https://img.shields.io/npm/dm/@okeyamy/faaa?label=npm%20downloads%2Fmo&color=F05033&labelColor=0A0A0A)](https://www.npmjs.com/package/@okeyamy/faaa)
 [![license](https://img.shields.io/badge/license-MIT-EDEDED?labelColor=0A0A0A)](LICENSE)
 
@@ -245,6 +244,13 @@ Order in `builtin.json` is menu order, and the first entry is the default. For
 something only you want, use `faaa add`, which needs no rebuild.
 
 The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
+
+## Downloads
+
+![Release downloads over time](assets/downloads.svg)
+
+Binary downloads across all releases, sampled weekly from GitHub's release
+counters. Those count requests, not people, so bots and CI are in the line too.
 
 ## License
 
