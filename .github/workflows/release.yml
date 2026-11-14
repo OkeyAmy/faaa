@@ -70,7 +70,7 @@ jobs:
       matrix: { os: [ubuntu-latest, macos-latest] }
     runs-on: ${{ matrix.os }}
     steps:
-      - run: curl -fsSL https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.sh | FAAA_DIR="$HOME/bin" sh
+      - run: curl -fsSL https://raw.githubusercontent.com/OkeyAmy/faaa/${{ needs.release.outputs.tag }}/install.sh | FAAA_DIR="$HOME/bin" sh
       - run: |
           "$HOME/bin/faaa" version
           "$HOME/bin/faaa" doctor || true
@@ -82,6 +82,6 @@ jobs:
     steps:
       - shell: pwsh
         run: |
-          irm https://raw.githubusercontent.com/OkeyAmy/faaa/main/install.ps1 | iex
+          irm https://raw.githubusercontent.com/OkeyAmy/faaa/${{ needs.release.outputs.tag }}/install.ps1 | iex
           & "$env:LOCALAPPDATA\faaa\faaa.exe" version
           & "$env:LOCALAPPDATA\faaa\faaa.exe" list | Select-Object -First 3

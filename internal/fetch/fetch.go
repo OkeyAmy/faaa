@@ -265,6 +265,14 @@ func Add(src, name string, maxSec float64, note func(string)) (catalog.Sound, au
 	tmp := filepath.Join(paths.Cache(), "dl", fmt.Sprintf("add-%d", time.Now().UnixNano()))
 	_ = os.MkdirAll(filepath.Dir(tmp), 0o755)
 	var file string
+	// Clean up staging on every path. After a successful rename into cache/src
+	// these paths no longer exist, so Remove is a no-op.
+	defer func() {
+		_ = os.Remove(tmp)
+		if file != "" {
+			_ = os.Remove(file)
+		}
+	}()
 	switch {
 	case tools.IsLink(src) && directAudio.MatchString(src):
 		p, err := httpGet(src, tmp)
@@ -302,14 +310,16 @@ func Add(src, name string, maxSec float64, note func(string)) (catalog.Sound, au
 		name = "sound"
 	}
 	s.ID, s.Title, s.Source = "mine-"+slug(name), name, "mine"
+	// Decode the staged file before moving it into cache/src: a rejected file
+	// must leave no debris and must not clobber the source of an existing sound.
+	c, err := audio.Convert(file, paths.Sound(s.ID), maxSec)
+	if err != nil {
+		return s, c, err
+	}
 	orig := Src(s.ID)
 	_ = os.MkdirAll(filepath.Dir(orig), 0o755)
 	if err := os.Rename(file, orig); err != nil {
 		return s, audio.Clip{}, err
-	}
-	c, err := audio.Convert(orig, paths.Sound(s.ID), maxSec)
-	if err != nil {
-		return s, c, err
 	}
 	s.Duration = c.Full
 	return s, c, catalog.AddMine(s)
