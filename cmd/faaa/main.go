@@ -45,7 +45,7 @@ usage:
   faaa share <id>         submit one of your sounds to the community catalog
   faaa theme [name]       list or set TUI theme
   faaa fail <id|off>      sound for rejected pushes
-  faaa volume [1-100]     playback gain (not system volume)
+  faaa volume [1-100]     playback gain (not system volume); faaa off mutes
   faaa on | off           unmute / mute (one push: FAAA_MUTE=1 git push)
   .faaa in a repo         line 1: repo's push sound, line 2: its fail sound
   faaa doctor             check setup
@@ -259,6 +259,7 @@ func run(args []string) error {
 				v = 1
 			}
 			fmt.Printf("%.0f%%\n", v*100)
+			fmt.Println("  faaa's own playback gain — your system/device volume is untouched (`faaa off` mutes)")
 			return nil
 		}
 		v, err := strconv.ParseFloat(strings.TrimSuffix(rest[0], "%"), 64)

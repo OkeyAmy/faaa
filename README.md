@@ -201,6 +201,70 @@ repo's own hooks. `faaa doctor` tells you which mode you're in.
 The trending list is rebuilt every few hours by a GitHub Action and fetched in
 the background with an ETag. Nothing runs on commit, checkout, status or fetch.
 
+## FAQ
+
+**I pushed and heard nothing.**
+`faaa doctor` first. It tells you which player it found, whether the hooks are
+in, and whether that player can do volume at all. Then check `faaa off` and
+`FAAA_MUTE` in that shell. Failed pushes are silent on purpose, and a `.faaa`
+naming a sound you don't have gets a note on the push, not a crash.
+
+**How do I make it quieter without touching my system volume?**
+`faaa volume 40`. That's faaa's own level, 1-100, not your device's — music,
+calls and everything else stay where you left them. `faaa off` mutes faaa
+outright, `faaa on` brings it back, and `FAAA_MUTE=1 git push` silences exactly
+one push. In `config.json` the same setting is a fraction of one (`0.6` is 60%).
+Bare `aplay` — ALSA without PipeWire or PulseAudio — and the Windows PowerShell
+player can't do gain at all; `faaa doctor` says so instead of pretending.
+
+**Does it fire on every push in every repo?**
+Yes. It installs a global hook. Drop a `.faaa` in one repo when that team wants
+their own anthem.
+
+**Does it slow `git push` down?**
+No. The hook writes down the refs and leaves in about 2ms. The waiting and the
+noise happen in a detached process.
+
+**Why is a failed push silent?**
+Because nothing landed. If the sad ones deserve a sound too,
+`faaa fail sad-violin`.
+
+**How do I update?**
+`faaa upgrade` checks the latest release and prints the command for how you
+installed faaa. It doesn't swap the binary itself — the installer, npm or brew
+does that, which is the only sane way to do it.
+
+**How do I get rid of it?**
+`faaa uninstall` pulls the hooks and puts your git config back exactly. Then
+delete the binary. On Windows, `uninstall.ps1` removes the folder and the PATH
+entry too.
+
+**Can I pin a version?**
+`FAAA_VERSION=0.0.6 curl -fsSL …/install.sh | sh`, same environment variable on
+Windows. The checksum comes from that tag, not from `latest`.
+
+**Is the download checked?**
+Both installers check `checksums.txt`, then run the new binary once. If it
+doesn't run, they stop and leave the copy you already had. A broken release
+can't eat your install.
+
+**What does it collect?**
+Nothing. No telemetry, no account, no server. The download badge is GitHub and
+npm counting files, not you.
+
+**Does it work in CI?**
+It runs. You want `FAAA_MUTE=1` on the push, or `faaa off` in that environment,
+unless your CI has earned a vine boom.
+
+**What platforms?**
+Linux and macOS through `install.sh`, Windows through `install.ps1`. amd64 and
+arm64.
+
+**Do I need ffmpeg or yt-dlp?**
+Only for some links. TikTok video links work with nothing else installed.
+YouTube, Reels and Shorts need `yt-dlp`, and anything that isn't mp3 needs
+`ffmpeg`.
+
 ## Contributing
 
 ```sh
