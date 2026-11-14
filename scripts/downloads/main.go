@@ -210,7 +210,7 @@ func niceMax(v float64) float64 {
 		return 4
 	}
 	mag := math.Pow(10, math.Floor(math.Log10(v)))
-	for _, step := range []float64{1, 2, 2.5, 5, 10} {
+	for _, step := range []float64{1, 2, 2.5, 3, 4, 5, 10} {
 		if c := step * mag; c >= v {
 			return c
 		}

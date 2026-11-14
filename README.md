@@ -249,8 +249,7 @@ The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea
 
 ![Release downloads over time](assets/downloads.svg)
 
-Binary downloads across all releases, sampled daily from GitHub's release
-counters. Those count requests, not people, so bots and CI are in the line too.
+Thanks for supporting faaa.
 
 ## License
 
