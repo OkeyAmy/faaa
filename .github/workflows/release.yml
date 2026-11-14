@@ -50,7 +50,9 @@ jobs:
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
 
   npm:
-    needs: release
+    # Do not publish until the one-line installers are proven against the
+    # release this job would ship: a broken install path must not reach npm.
+    needs: [release, verify-install, verify-install-windows]
     runs-on: ubuntu-latest
     continue-on-error: true # needs the package linked once as a trusted publisher on npmjs.com
     steps:
