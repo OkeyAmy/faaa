@@ -247,7 +247,7 @@ The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea
 
 ## Downloads
 
-![Release downloads over time](assets/downloads.svg)
+![Installer runs over time](assets/downloads.svg)
 
 Thanks for supporting faaa.
 

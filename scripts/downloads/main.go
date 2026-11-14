@@ -35,7 +35,7 @@ func main() {
 	if b, err := os.ReadFile(histPath); err == nil {
 		_ = json.Unmarshal(b, &hist)
 	}
-	n, err := binaries(repo)
+	n, err := checksums(repo)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "downloads:", err)
 		os.Exit(1)
@@ -61,12 +61,14 @@ func main() {
 		fmt.Fprintln(os.Stderr, "downloads:", err)
 		os.Exit(1)
 	}
-	fmt.Printf("%d downloads across %d points\n", n, len(hist))
+	fmt.Printf("%d installer runs across %d points\n", n, len(hist))
 }
 
-// binaries sums release asset downloads, skipping checksums.txt: every
-// installer fetches that too, so counting it would double every install.
-func binaries(repo string) (int, error) {
+// checksums sums checksums.txt downloads. Every installer fetches it exactly
+// once, so it is the closest counter we have to "the installer ran". Raw asset
+// downloads also include direct fetches by scanners and mirrors, which is why
+// they read 3-13x higher than this.
+func checksums(repo string) (int, error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/repos/"+repo+"/releases?per_page=100", nil)
 	if err != nil {
 		return 0, err
@@ -96,7 +98,7 @@ func binaries(repo string) (int, error) {
 	sum := 0
 	for _, r := range rels {
 		for _, a := range r.Assets {
-			if !strings.Contains(a.Name, "checksums") {
+			if strings.Contains(a.Name, "checksums") {
 				sum += a.Downloads
 			}
 		}
@@ -128,7 +130,7 @@ func chart(hist []point) string {
 	if len(hist) == 1 {
 		p := hist[0]
 		d, _ := time.Parse("2006-01-02", p.Date)
-		return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%d binary downloads since %s"><title>%d binary downloads since %s</title><g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif"><text x="%d" y="146" text-anchor="middle" font-size="64" font-weight="600" fill="%s">%s</text><text x="%d" y="182" text-anchor="middle" font-size="13" fill="%s">binary downloads since %s</text></g></svg>`,
+		return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%d installer runs since %s"><title>%d installer runs since %s</title><g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif"><text x="%d" y="146" text-anchor="middle" font-size="64" font-weight="600" fill="%s">%s</text><text x="%d" y="182" text-anchor="middle" font-size="13" fill="%s">installer runs since %s</text></g></svg>`,
 			w, h, w, h, p.Downloads, d.Format("Jan 2"), p.Downloads, d.Format("Jan 2"), w/2, orange, formatCount(p.Downloads), w/2, grey, d.Format("Jan 2"))
 	}
 	parse := func(s string) time.Time { t, _ := time.Parse("2006-01-02", s); return t }
@@ -152,8 +154,8 @@ func chart(hist []point) string {
 	}
 
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="Release downloads over time">`, w, h, w, h)
-	b.WriteString(`<title>Release downloads over time</title><defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="` + orange + `" stop-opacity="0.24"/><stop offset="1" stop-color="` + orange + `" stop-opacity="0"/></linearGradient></defs>`)
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="Installer runs over time">`, w, h, w, h)
+	b.WriteString(`<title>Installer runs over time</title><defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="` + orange + `" stop-opacity="0.24"/><stop offset="1" stop-color="` + orange + `" stop-opacity="0"/></linearGradient></defs>`)
 	b.WriteString(`<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="` + grey + `">`)
 
 	// gridlines and y labels
