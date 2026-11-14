@@ -25,7 +25,8 @@ type point struct {
 func main() {
 	repo := os.Getenv("GITHUB_REPOSITORY")
 	if repo == "" {
-		repo = "OkeyAmy/faaa"
+		fmt.Fprintln(os.Stderr, "downloads: set GITHUB_REPOSITORY=owner/repo")
+		os.Exit(2)
 	}
 	histPath := filepath.Join("assets", "downloads.json")
 	svgPath := filepath.Join("assets", "downloads.svg")
@@ -122,6 +123,14 @@ func chart(hist []point) string {
 	if len(hist) == 0 {
 		return `<svg xmlns="http://www.w3.org/2000/svg" width="820" height="300"></svg>`
 	}
+	// One sample has no line to draw. Show the number as a card rather than a
+	// lone dot on empty axes.
+	if len(hist) == 1 {
+		p := hist[0]
+		d, _ := time.Parse("2006-01-02", p.Date)
+		return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%d binary downloads since %s"><title>%d binary downloads since %s</title><g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif"><text x="%d" y="146" text-anchor="middle" font-size="64" font-weight="600" fill="%s">%s</text><text x="%d" y="182" text-anchor="middle" font-size="13" fill="%s">binary downloads since %s</text></g></svg>`,
+			w, h, w, h, p.Downloads, d.Format("Jan 2"), p.Downloads, d.Format("Jan 2"), w/2, orange, formatCount(p.Downloads), w/2, grey, d.Format("Jan 2"))
+	}
 	parse := func(s string) time.Time { t, _ := time.Parse("2006-01-02", s); return t }
 	first, last := parse(hist[0].Date), parse(hist[len(hist)-1].Date)
 	span := last.Sub(first).Hours()
@@ -176,8 +185,7 @@ func chart(hist []point) string {
 	lastP := hist[len(hist)-1]
 	fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3" fill="`+orange+`"/>`, x(lastP), y(lastP.Downloads))
 
-	// legend and latest total
-	fmt.Fprintf(&b, `<text x="%.1f" y="18" fill="`+orange+`" font-weight="600">release downloads</text>`, x0)
+	// latest total, top right; the section heading already names the series
 	fmt.Fprintf(&b, `<text x="%.1f" y="18" text-anchor="end" font-weight="600">%s</text>`, x1, formatCount(lastP.Downloads))
 
 	// date labels: one point gets one label, not three identical ones
