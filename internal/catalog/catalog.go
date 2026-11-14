@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/okeyamy/faaa/internal/audio"
 	"github.com/okeyamy/faaa/internal/paths"
@@ -199,15 +200,39 @@ func SaveListing(s []Sound) error {
 
 // Resolve turns what the user typed into a sound. Exact ids win (hooks, `.faaa`
 // and older scripts rely on that), then a row number from the last listing,
-// then a unique case-insensitive id prefix, then a unique case-insensitive
-// title substring. When more than one sound matches, candidates holds up to
-// five of them and ok is false so nothing gets armed.
+// then a unique case-insensitive id prefix, then a title match. Titles are
+// compared normalized: exact first, then contiguous, then the same words in any
+// order, then every query word against a title word (partials allowed).
+//
+// When several sounds match, the one from the static catalog wins over a
+// live-search duplicate with the same title; anything still tied returns
+// candidates (max five) and ok=false so nothing gets armed.
 func Resolve(q string) (s Sound, candidates []Sound, ok bool) {
 	q = strings.TrimSpace(q)
 	if q == "" {
 		return Sound{}, nil, false
 	}
-	pool := append(All(Cached()), Recent()...)
+	all := All(Cached())
+	pool := append(append([]Sound{}, all...), Recent()...)
+	canonical := make(map[string]bool, len(all))
+	for _, x := range all {
+		canonical[x.ID] = true
+	}
+	settle := func(m []Sound) (Sound, []Sound, bool) {
+		if len(m) == 1 {
+			return m[0], nil, true
+		}
+		var canon []Sound
+		for _, x := range m {
+			if canonical[x.ID] {
+				canon = append(canon, x)
+			}
+		}
+		if len(canon) == 1 {
+			return canon[0], nil, true
+		}
+		return Sound{}, m, false
+	}
 	for _, x := range pool {
 		if x.ID == q {
 			return x, nil, true
@@ -219,17 +244,90 @@ func Resolve(q string) (s Sound, candidates []Sound, ok bool) {
 		}
 	}
 	needle := strings.ToLower(q)
-	if m := pick(pool, func(x Sound) bool { return strings.HasPrefix(strings.ToLower(x.ID), needle) }); len(m) == 1 {
-		return m[0], nil, true
-	} else if len(m) > 1 {
-		return Sound{}, m, false
+	if m := pick(pool, func(x Sound) bool { return strings.HasPrefix(strings.ToLower(x.ID), needle) }); len(m) > 0 {
+		return settle(m)
 	}
-	if m := pick(pool, func(x Sound) bool { return strings.Contains(strings.ToLower(x.Title), needle) }); len(m) == 1 {
-		return m[0], nil, true
-	} else if len(m) > 1 {
-		return Sound{}, m, false
+	nq := norm(q)
+	if nq == "" {
+		return Sound{}, nil, false
+	}
+	if m := pick(pool, func(x Sound) bool { return norm(x.Title) == nq }); len(m) > 0 {
+		return settle(m)
+	}
+	if m := pick(pool, func(x Sound) bool { return strings.Contains(norm(x.Title), nq) }); len(m) > 0 {
+		return settle(m)
+	}
+	qt := strings.Fields(nq)
+	if len(qt) == 0 {
+		return Sound{}, nil, false
+	}
+	// Same words in any order ("Boom Vine" == "Vine Boom").
+	if m := pick(pool, func(x Sound) bool { return sameTokens(qt, strings.Fields(norm(x.Title))) }); len(m) > 0 {
+		return settle(m)
+	}
+	// Every query word matches a title word, partial words included.
+	if m := pick(pool, func(x Sound) bool { return tokensMatch(qt, strings.Fields(norm(x.Title))) }); len(m) > 0 {
+		return settle(m)
 	}
 	return Sound{}, nil, false
+}
+
+// norm flattens case, punctuation and whitespace so titles compare by words
+// rather than by typography.
+func norm(s string) string {
+	var b strings.Builder
+	space := false
+	for _, r := range strings.ToLower(s) {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			b.WriteRune(r)
+			space = false
+			continue
+		}
+		if !space {
+			b.WriteByte(' ')
+			space = true
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// tokensMatch reports whether every query word equals or prefixes a title word.
+func tokensMatch(query, title []string) bool {
+	for _, q := range query {
+		ok := false
+		for _, t := range title {
+			if t == q || strings.HasPrefix(t, q) {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// sameTokens reports whether both sides contain the same words, order aside.
+func sameTokens(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	used := make([]bool, len(b))
+	for _, q := range a {
+		found := false
+		for i, t := range b {
+			if !used[i] && t == q {
+				used[i] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }
 
 // pick filters pool, de-duplicating by id, and keeps at most five matches so an

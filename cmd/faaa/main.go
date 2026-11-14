@@ -35,8 +35,8 @@ usage:
   faaa uninstall          disarm, restore previous git config
   faaa update             refresh the sound list now (auto every launch)
   faaa upgrade            check for a newer release (and how to install it)
-  faaa play [id]          play current (or given) sound
-  faaa set <id>           choose push sound
+  faaa play [id|row|name] play current (or given) sound
+  faaa set <id|row|name>  choose push sound
   faaa add <file|link> [name] your own sound: a file, or a link to any
                           TikTok (no setup) / Reels / Shorts / YouTube post
   faaa search <words>     find any sound online
@@ -44,7 +44,7 @@ usage:
   faaa list               list sounds
   faaa share <id>         submit one of your sounds to the community catalog
   faaa theme [name]       list or set TUI theme
-  faaa fail <id|off>      sound for rejected pushes
+  faaa fail <id|row|name|off>  sound for rejected pushes
   faaa volume [1-100]     playback gain (not system volume); faaa off mutes
   faaa on | off           unmute / mute (one push: FAAA_MUTE=1 git push)
   .faaa in a repo         line 1: repo's push sound, line 2: its fail sound
@@ -127,10 +127,11 @@ func run(args []string) error {
 		return upgradeCmd(rest)
 	case "set":
 		autoArm(&cfg)
-		if len(rest) != 1 {
-			return fmt.Errorf("usage: faaa set <id>")
+		if len(rest) == 0 {
+			return fmt.Errorf("usage: faaa set <id|row|name>")
 		}
-		s, err := resolveSound(rest[0])
+		q := strings.Join(rest, " ")
+		s, err := resolveSound(q)
 		if err != nil {
 			return err
 		}
@@ -144,7 +145,7 @@ func run(args []string) error {
 		// Echo the title (and the row, when a number was typed) so a listing
 		// overwritten by another terminal is visible immediately.
 		row := ""
-		if n, err := strconv.Atoi(rest[0]); err == nil {
+		if n, err := strconv.Atoi(q); err == nil {
 			row = fmt.Sprintf(" (row %d)", n)
 		}
 		fmt.Println("✓ push sound →", s.Title+row)
@@ -179,8 +180,15 @@ func run(args []string) error {
 		if len(res) < pick {
 			pick = len(res)
 		}
-		fmt.Printf("\n  arm or preview by number:  faaa set %d   faaa play %d   (%d = %s)\n",
-			pick, pick, pick, fitTitle(displayTitle(res[pick-1].Title), 40))
+		words := strings.Fields(displayTitle(res[pick-1].Title))
+		if len(words) > 3 {
+			words = words[:3]
+		}
+		example := strings.Join(words, " ")
+		fmt.Printf("\n  arm it:     faaa set %d\n", pick)
+		if example != "" && !strings.ContainsAny(example, "\"'$`\\") {
+			fmt.Printf("  or by name: faaa set %s   (any words from the title, any order)\n", example)
+		}
 		return nil
 	case "length", "len":
 		if len(rest) == 0 {
@@ -238,13 +246,14 @@ func run(args []string) error {
 			fmt.Println(map[bool]string{true: "off", false: cfg.FailSound}[cfg.FailSound == ""])
 			return nil
 		}
-		if rest[0] == "off" {
+		q := strings.Join(rest, " ")
+		if q == "off" {
 			cfg.FailSound = ""
 			return config.Save(cfg)
 		}
-		s, ok := catalog.Find(rest[0])
-		if !ok {
-			return fmt.Errorf("no sound %q (see `faaa list`)", rest[0])
+		s, err := resolveSound(q)
+		if err != nil {
+			return err
 		}
 		if err := fetch.Ensure(s, cfg.MaxSeconds); err != nil {
 			return err
@@ -336,12 +345,22 @@ func currentVersion() string {
 // a silent fallback. No args keeps the old path (and stays cheap for hooks).
 func play(cfg config.Config, rest []string) error {
 	if len(rest) > 0 {
-		s, err := resolveSound(rest[0])
+		q := strings.Join(rest, " ")
+		s, err := resolveSound(q)
 		if err != nil {
-			if !catalog.Ready(rest[0]) { // sound already on disk but not indexed
+			if !catalog.Ready(q) { // sound already on disk but not indexed
 				return err
 			}
-			return playSound(cfg, rest[0], false)
+			return playSound(cfg, q, false)
+		}
+		// Playback needs a local file, and search results are only metadata
+		// until something fetches them. `play` is an explicit request, so fetch
+		// here instead of silently falling back to the default sound.
+		if !catalog.Ready(s.ID) {
+			fmt.Fprintf(os.Stderr, "⇣ downloading %s…\n", displayTitle(s.Title))
+			if err := fetch.Ensure(s, cfg.MaxSeconds); err != nil {
+				return fmt.Errorf("couldn't download %q: %w", displayTitle(s.Title), err)
+			}
 		}
 		return playSound(cfg, s.ID, false)
 	}
@@ -361,12 +380,24 @@ func resolveSound(q string) (catalog.Sound, error) {
 	}
 	if len(cands) > 0 {
 		fmt.Printf("faaa: %q matches %d sounds — be more specific:\n", q, len(cands))
+		last := catalog.Listing()
 		for _, c := range cands {
-			fmt.Println("  •", displayTitle(c.Title))
+			row := 0
+			for i, x := range last {
+				if x.ID == c.ID {
+					row = i + 1
+					break
+				}
+			}
+			if row > 0 {
+				fmt.Printf("  • %s   (row %d)\n", displayTitle(c.Title), row)
+			} else {
+				fmt.Printf("  • %s   %s\n", displayTitle(c.Title), c.ID)
+			}
 		}
 		return catalog.Sound{}, fmt.Errorf("ambiguous sound %q — nothing changed", q)
 	}
-	return catalog.Sound{}, fmt.Errorf("no sound %q (see `faaa list`)", q)
+	return catalog.Sound{}, fmt.Errorf("no sound %q — try `faaa search %s` or `faaa list`", q, q)
 }
 
 // listSounds is the catalog plus the last search listing and the armed sound,
