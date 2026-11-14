@@ -1,14 +1,12 @@
 <div align="center">
 
-<img src="assets/hero.svg" alt="faaa — git push, but louder" width="100%">
+<img src="assets/hero.svg" alt="faaa — git push, but louder" width="880">
 
 **git push, but louder.**
 
-[![ci](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml/badge.svg)](https://github.com/OkeyAmy/faaa/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/OkeyAmy/faaa?color=F05033&labelColor=0A0A0A)](https://github.com/OkeyAmy/faaa/releases)
 ![release downloads](https://img.shields.io/github/downloads/OkeyAmy/faaa/total?label=release%20downloads&color=F05033&labelColor=0A0A0A)
 [![npm downloads](https://img.shields.io/npm/dm/@okeyamy/faaa?label=npm%20downloads%2Fmo&color=F05033&labelColor=0A0A0A)](https://www.npmjs.com/package/@okeyamy/faaa)
-![platforms](https://img.shields.io/badge/macOS%20%7C%20linux%20%7C%20windows-F05033?labelColor=0A0A0A)
 [![license](https://img.shields.io/badge/license-MIT-EDEDED?labelColor=0A0A0A)](LICENSE)
 
 </div>
@@ -43,7 +41,12 @@ makes the Go toolchain download itself, which fails behind a restricted network.
 That's one binary: no runtime, no daemon. The installer puts it on your
 `PATH` and arms git.
 
+Pin a release with `FAAA_VERSION=0.0.6`. Both installers check `checksums.txt`
+and run the new binary once before replacing anything.
+
 ## Use
+
+<p align="center"><img src="assets/picker.gif" alt="the faaa picker: waveform preview with a moving playhead, then pasting a TikTok link" width="900"></p>
 
 ```sh
 faaa
@@ -51,10 +54,6 @@ faaa
 
 The first run wires itself into git for every repo on the machine. There's
 no step two.
-
-<p align="center"><img src="assets/picker.gif" alt="the faaa picker: waveform preview with a moving playhead, then pasting a TikTok link" width="100%"></p>
-
-The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
 
 | key             | action                               |
 | --------------- | ------------------------------------ |
@@ -69,6 +68,9 @@ The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea
 
 Search isn't limited to the list. Type a name and faaa looks it up online
 while you type.
+
+On a call? `FAAA_MUTE=1 git push` silences one push; `faaa off` silences
+everything until `faaa on`.
 
 ## Bring your own sound
 
@@ -108,30 +110,20 @@ faaa length 25     # or [ ] in the picker
 
 ## Commands
 
-```
-faaa                     open the picker (first run arms git)
-faaa add <file|link>     your own sound
-faaa search <words>      find a sound online
-faaa set <id>            arm a sound without the picker
-faaa length [sec]        clip length
-faaa list                everything available
-faaa update              pull the newest trending list now
-faaa upgrade             check for a newer release (and how to install it)
-faaa fail <id|off>       a sound for rejected pushes (sad-violin works)
-faaa volume [1-100]      this tool's playback gain, not system/device volume
-faaa theme [name]        terminal ink tokyonight catppuccin rosepine gruvbox nord
-faaa off | on            mute / unmute
-faaa share <id>          submit your sound to the shared list
-faaa doctor              something's quiet, find out why
-faaa uninstall           disarm and restore your git config exactly
-```
+| command | what it does |
+| --- | --- |
+| `faaa` | picker; first run arms git |
+| `faaa add <file\|link>` | your own sound |
+| `faaa search <words>` | find one online |
+| `faaa length [1-60]` | clip length, best part picked |
+| `faaa volume [1-100]` | faaa's own gain, not the device's |
+| `faaa off` / `faaa on` | mute / unmute |
+| `faaa fail <id\|off>` | sound for rejected pushes |
+| `faaa upgrade` | is there a newer release |
+| `faaa doctor` | something's quiet, find out why |
+| `faaa uninstall` | disarm and restore git config exactly |
 
-## On a call?
-
-```sh
-FAAA_MUTE=1 git push     # this push only
-faaa off                 # until faaa on
-```
+`faaa --help` lists the rest: `set`, `list`, `theme`, `share`, `update`.
 
 ## Team anthem
 
@@ -170,21 +162,6 @@ wrote by hand. `ink` is monochrome with git orange. The color slots are `fg`,
 overridden with hex or an ANSI number. `player` defaults to whatever the OS already
 has: `pw-play` / `paplay` / `aplay` on Linux, `afplay` on macOS, PowerShell on
 Windows.
-
-## The built-in sounds
-
-The classics ship inside the binary so faaa works offline on first run.
-They're in `internal/audio/builtin/`:
-
-```sh
-cp ~/Downloads/emotional-damage.mp3 internal/audio/builtin/
-# add to internal/audio/builtin/builtin.json:
-#   {"id": "emotional-damage", "title": "Emotional Damage"}
-go build -o faaa ./cmd/faaa
-```
-
-Order in `builtin.json` is menu order, and the first entry is the default. For
-something only you want, use `faaa add`, which needs no rebuild.
 
 ## How it works
 
@@ -225,44 +202,22 @@ their own anthem.
 No. The hook writes down the refs and leaves in about 2ms. The waiting and the
 noise happen in a detached process.
 
-**Why is a failed push silent?**
-Because nothing landed. If the sad ones deserve a sound too,
-`faaa fail sad-violin`.
-
-**How do I update?**
-`faaa upgrade` checks the latest release and prints the command for how you
-installed faaa. It doesn't swap the binary itself — the installer, npm or brew
-does that, which is the only sane way to do it.
-
-**How do I get rid of it?**
-`faaa uninstall` pulls the hooks and puts your git config back exactly. Then
-delete the binary. On Windows, `uninstall.ps1` removes the folder and the PATH
-entry too.
-
-**Can I pin a version?**
-`FAAA_VERSION=0.0.6 curl -fsSL …/install.sh | sh`, same environment variable on
-Windows. The checksum comes from that tag, not from `latest`.
-
-**Is the download checked?**
-Both installers check `checksums.txt`, then run the new binary once. If it
-doesn't run, they stop and leave the copy you already had. A broken release
-can't eat your install.
+**How do I update or remove it?**
+`faaa upgrade` checks the latest release and prints the install command for how
+you got faaa; it never swaps the binary itself. To get rid of it, `faaa uninstall`
+pulls the hooks and restores your git config exactly, then delete the binary. On
+Windows, `uninstall.ps1` drops the folder and the PATH entry too.
 
 **What does it collect?**
 Nothing. No telemetry, no account, no server.
 
-**Does it work in CI?**
-It runs. You want `FAAA_MUTE=1` on the push, or `faaa off` in that environment,
-unless your CI has earned a vine boom.
+## Support
 
-**What platforms?**
-Linux and macOS through `install.sh`, Windows through `install.ps1`. amd64 and
-arm64.
+faaa is free, has no telemetry and no account. If it made you laugh:
 
-**Do I need ffmpeg or yt-dlp?**
-Only for some links. TikTok video links work with nothing else installed.
-YouTube, Reels and Shorts need `yt-dlp`, and anything that isn't mp3 needs
-`ffmpeg`.
+- **Star the repo** — that is what puts it in front of other people.
+- **Share a sound** — `faaa share <id>` adds it to the community list.
+- **Tell one person** — one good `git push` demo beats any badge.
 
 ## Contributing
 
@@ -275,6 +230,21 @@ go run ./scraper           # rebuild the trending list
 Submitting a sound: `faaa share <id>`, or open a PR adding it to
 [`community/`](community/README.md). Only submit sounds you made or have the
 right to share.
+
+The built-in classics ship inside the binary so faaa works offline on first run.
+They live in `internal/audio/builtin/`:
+
+```sh
+cp ~/Downloads/emotional-damage.mp3 internal/audio/builtin/
+# add to internal/audio/builtin/builtin.json:
+#   {"id": "emotional-damage", "title": "Emotional Damage"}
+go build -o faaa ./cmd/faaa
+```
+
+Order in `builtin.json` is menu order, and the first entry is the default. For
+something only you want, use `faaa add`, which needs no rebuild.
+
+The picker is built with [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
 
 ## License
 
